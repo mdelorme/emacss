@@ -1,22 +1,26 @@
 CPP=g++
-CFLAGS=-g -fast
-LM=-lm -std=c99
+CFLAGS=-g -O3 -pedantic -Wall #-fastmath
+LM=-lm #-std=c99
 
-EMACSS=emacss.cpp input.cpp info.cpp params.cpp cluster.cpp output.cpp
+
+CLUSTER=input.cpp info.cpp params.cpp cluster.cpp output.cpp
 DYN=dynamics.cpp
 SE=stellar_evolution.cpp 
-EMACSS_OBJ=$(EMACSS:.cpp=.o)
 DYN_OBJ=$(DYN:.cpp=.o)
+CLUSTER_OBJ=$(CLUSTER:.cpp=.o)
 SE_OBJ=$(SE:.cpp=.o)
 
-all: emacss
+all: emacss tester
 
-emacss: $(EMACSS_OBJ) $(DYN_OBJ) $(SE_OBJ)
-	$(CPP) $(CFLAGS) $(EMACSS_OBJ) $(DYN_OBJ) $(LM) $(SE_OBJ) -o $@
+emacss: emacss.cpp $(DYN_OBJ) $(CLUSTER_OBJ) $(SE_OBJ)
+	$(CPP) $(CFLAGS) emacss.cpp $(DYN_OBJ) $(CLUSTER_OBJ) $(LM) $(SE_OBJ) -o $@
+
+tester: tester.cpp $(DYN_OBJ) $(CLUSTER_OBJ) $(SE_OBJ) 
+	$(CPP) $(CFLAGS) tester.cpp $(CLUSTER_OBJ) $(DYN_OBJ) $(LM) $(SE_OBJ) -o $@
 
 clean:
 	rm *.o
- 
+
 emacss.o: emacss.cpp
 	$(CPP) -g -c $^ -o $@
 
@@ -37,6 +41,6 @@ output.o: emacss_dir/output.cpp
 
 dynamics.o: dynamics/dynamics.cpp
 	$(CPP) -g -c $^ -o $@
-	
+
 stellar_evolution.o: stevo/stellar_evolution.cpp
 	$(CPP) -g -c $^ -o $@

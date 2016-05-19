@@ -57,7 +57,7 @@ void node::output(stellar_evo se, dynamics dyn){
 	    fprintf(stderr,"  %-12s %-9s %-9s %-9s %-9s %-9s %-9s %-7s %-5s %-9s %-9s %-10s %-10s %-10s %-10s %-10s \n",
 		  "t","RG","N","M","rhoc","rc","rh","rj","kappa","S",
 		  "t_rc","t_rh",
-		  "lambda","xi","mu","epsilon","delta"); 
+		  "lambda","xi","mu","epsilon"); 
 	  }
 	
 	  if (units == 1){
@@ -66,7 +66,7 @@ void node::output(stellar_evo se, dynamics dyn){
 	    fprintf(stderr,"  %-12s %-9s %-9s %-9s %-9s %-9s %-9s %-7s %-5s %-9s %-9s %-10s %-10s %-10s %-10s %-10s \n",
 		  "t","RG","N","M","rhoc","rc","rh","rj","kappa","S",
 		  "t_rc","t_rh",
-		  "lambda","xi","mu","epsilon","delta"); 
+		  "lambda","xi","mu","epsilon"); 
 	    fprintf(stderr,"  %-12s %-9s %-9s %-9s %-9s %-9s %-9s %-7s %-5s %-9s %-9s %-10s %-10s %-10s %-10s %-10s \n",
 		  "[Myr]"," ","[Mo]","[Mo/pc3]","[pc]","[pc]","[pc]"," ","  ","[Myr]","[Myr]"," "," "," "," "," ");  
 	    
@@ -78,7 +78,7 @@ void node::output(stellar_evo se, dynamics dyn){
 	    fprintf(stderr,"   %-12s %-9s %-9s %-9s %-9s %-9s %-9s %-7s %-4s %-10s %-8s %-12s %-8s %-10s %-11s %-10s %-9s %-10s\n" ,
 		  "t","RG","N","M","rh","rj","MS","E", "kappa","S",
 		  "t_rh","nc","t_rh'","nc'",
-		  "gamma","lambda","xi","mu","epsilon"); 
+		  "gamma","lambda","xi","mu"); 
 	    fprintf(stderr,"  %-12s %-9s %-9s %-9s %-9s %-9s %-9s %-7s %-5s %-9s %-9s %-9s %-9s %-10s %-10s %-10s %-10s %-10s\n",
 		  "[Myr]"," ","[Mo]","[pc]","[pc]"," "," "," "," ","[Myr]"," ","[Myr]"," "," "," "," "," "," ");  
 	}

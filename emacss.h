@@ -9,6 +9,8 @@
 #include <cstring>
 #include <cmath>
 #include <limits>
+#include <getopt.h>
+#include <algorithm>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,8 +27,8 @@ typedef struct{ //Energy information - output, steady state, generation,
 } energy;
 
 typedef struct{  //The properties defining the tidal field
-  int type, f;
-  double M, R, R2, v;
+  int type, f, gamma;
+  double M, R, R2, v, scale;
 } tidal_field;
 
 class stellar_evo;
@@ -35,7 +37,7 @@ class dynamics;
 class node{                       //Binding of cluster parameters at given time
   void solve_odes(double[],stellar_evo,dynamics);
   void convert(stellar_evo,dynamics);
-  double E_calc(), trh(), trhp(), r_jacobi();              //Calculated factors
+  double E_calc(), trh(), trhp();              //Calculated factors
   double trc(), rhoc();                                    //Relaxation times
   double step_min();                                      //Minimum stepsize
   double G_star, M_star, R_star, T_star, pcMyr;            //Conversion factors
@@ -51,6 +53,9 @@ class node{                       //Binding of cluster parameters at given time
   void load(dynamics*,stellar_evo*);
   void evolve(stellar_evo,dynamics);
   void output(stellar_evo,dynamics);
+
+  double r_jacobi(dynamics); // TODO : blah blah private
+  
   tidal_field galaxy;                                      //Galaxy conditions
   double time, t_rh, t_rhp, t_rc, tcc, out_time, tdf;      //Times
   energy E;                                                //Energies
@@ -84,13 +89,14 @@ class stellar_evo{
 class dynamics{
   double P(), K(), k(), f_ind(), F();   //Tidal Factor (AG2012, eq: 25)
   double y[];
-  node *mynode;
   stellar_evo *myse;
   double R1, N1, x, z, xi1, f, t_df, Fej;    //Tidal characteristics (set at start)
   double delta_1, delta_2;                       //Core characteristics
   double N2, N3;                                 //Core Scalings
   double Y, b, q;                                //Misc
  public:
+  node *mynode; // TODO : Put back where it belongs after the test
+  
   dynamics();
   void load(node*,stellar_evo*);
   void  reset_K_constants(), set_tcc(), set_k0(); //Functions
@@ -99,10 +105,19 @@ class dynamics{
   double Rchmin(), m_ej();
   //Differential equations
   double dNdt(), dmmdt(), drdt(), dkdt(), drcdt();  
-  double dtrhdt(), dtrhpdt(), dr2dt();
+  double dtrhdt(), dtrhpdt();
+  double falpha();                               //function that modifies mass loss
   //Dimensionless factors
   double xi(), xi_e(), xi_i(), gamma(), gamma_dyn();
-  double mu(), lambda(), delta(), epsilon();    
+  double mu(), lambda(), delta(), epsilon();
+
+  double dr2dt();
+  double dV_dR();
+  double alpha(), vcirc();
+
+  double fv(double);
+  double integrate(double, double);
+  // CHANGED
 };
 
 /**************************************************************/

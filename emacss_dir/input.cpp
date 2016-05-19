@@ -16,7 +16,7 @@ void node::input(int argc, char* argv[]){
     
   zero();  //Zero's the code (i.e., sets a default set of conditions) 
   
-  while (( c = getopt(argc,argv, "N:r:m:t:M:d:v:z:o:s:R:g:l:u:f:")) != -1) 
+  while (( c = getopt(argc,argv, "N:r:m:t:M:a:p:d:v:z:o:s:R:g:l:u:f:")) != -1) 
     switch (c){
     case ('N'):                              //N bodies
       value = optarg;
@@ -77,7 +77,7 @@ void node::input(int argc, char* argv[]){
       break; 
     case ('g'):                              //galaxy halo type flag
       value = optarg;
-      if (atoi(value) < 0 || atoi(value) > 1){
+      if (atoi(value) < 0 || atoi(value) > 3){
 	  cerr << "Galaxy Type Invalid" << endl;
 	  exit(1);
       }
@@ -91,6 +91,24 @@ void node::input(int argc, char* argv[]){
       }
       galaxy.M = atof(value);
       break;
+//FilippoC
+    case ('a'):                              //Galaxy scale Dehnen model
+      value = optarg;
+      if (atof(value) < 0){     
+          cerr << "Galaxy scale negative" << endl;
+          exit(1);
+      }
+      galaxy.scale = fabs(atof(value)*1000);     //1000 - input in kpc
+      break;
+    case ('p'):                              //Galaxy parameter Dehnen model 
+      value = optarg;
+      if (atoi(value) < 0 || atoi(value) > 1){     
+          cerr << "Galaxy Parameter Invalid " << atoi(value) << endl;
+          exit(1);
+      }
+      galaxy.gamma = atoi(value);
+      break;
+//FContenta
     case ('d'):                              //distance from galaxy CoM (/1000)
       value = optarg;
       galaxy.R = fabs(atof(value)*1000);     //1000 - input in kpc
@@ -197,9 +215,17 @@ void node::initialise(stellar_evo se,dynamics dyn){
     cerr << "Galaxy set by radius and mass" << galaxy.R << endl;
   }
   else if (galaxy.M != 0 && galaxy.R != 0 && galaxy.v == 0){
-    galaxy.v = pow((G*galaxy.M)/galaxy.R,1.0/2.0);
-    if (galaxy.type == 0) galaxy.type = 1;
-    cerr << "Galaxy set by mass and radius" << endl;
+//FilippoC
+    if (galaxy.type == 3 && galaxy.scale != 0) {
+      galaxy.v = pow(G*galaxy.M*pow(galaxy.R , 2-galaxy.gamma)/ \
+        pow(galaxy.R + galaxy.scale, 3-galaxy.gamma),0.5);
+    }
+//FContenta
+    else {
+      galaxy.v = pow((G*galaxy.M)/galaxy.R,1.0/2.0);
+      if (galaxy.type == 0) galaxy.type = 1;
+        cerr << "Galaxy set by mass and radius" << endl;
+    }
   }
   else if (Rhj != 0){
     cerr << "Galaxy set by rh/rj" << endl;
@@ -213,6 +239,7 @@ void node::initialise(stellar_evo se,dynamics dyn){
     galaxy.v = pow((G*galaxy.M)/galaxy.R,1.0/2.0);
   }
   else{
+//    cerr << galaxy.M << "   " << galaxy.R << "   " << galaxy.v << "   " << galaxy.scale << endl;
     cerr << "Insufficient galaxy data supplied. Assuming isolated..." << endl;
     galaxy.type = 0;
   }
@@ -250,6 +277,7 @@ void node::initialise(stellar_evo se,dynamics dyn){
   //If needed, converts galaxy to N-body units 
     galaxy.M = galaxy.M/M_star;
     galaxy.R = galaxy.R/R_star;
+    galaxy.scale = galaxy.scale/R_star;
     galaxy.v = (galaxy.v*pcMyr)/(R_star/T_star); 
   }
   
@@ -263,7 +291,7 @@ void node::initialise(stellar_evo se,dynamics dyn){
   //Sets final factors needed - kappa, mass, E, trh , trc, and rj
   mm = 1.0/N; mm_se = mm; rv = 1.0; rh = 0.78; psi = se.psi();
   t_rh = trh(); t_rc = trc(); t_rhp = trhp();
-  rj = r_jacobi(); Rhj = rh/rj; Rch = rc/rh;
+  rj = r_jacobi(dyn); Rhj = rh/rj; Rch = rc/rh;
   trhelapsed = 0; trhpelapsed = 0; MS = 3.0; out_time = out_time/T_star;
   m_min = m_min/M_star; m_max =  m_max/M_star; m_max0 = m_max/M_star; 
   E.value = E_calc();
