@@ -40,13 +40,14 @@ class node{                       //Binding of cluster parameters at given time
   double E_calc(), trh(), trhp();              //Calculated factors
   double trc(), rhoc();                                    //Relaxation times
   double step_min();                                      //Minimum stepsize
-  double G_star, M_star, R_star, T_star, pcMyr;            //Conversion factors
+  
   double tstep;                                            //Timesteps
   double *nbody[13];                                       //Data arrays 
   int nvar;
  public:
   node();
   int units, s;
+  double G_star, M_star, R_star, T_star, pcMyr;            //Conversion factors TODO : Go back private
   void input(int, char*[]);
   void initialise(stellar_evo,dynamics);
   void zero();

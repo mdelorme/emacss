@@ -274,7 +274,7 @@ void node::initialise(stellar_evo se,dynamics dyn){
     R_star = rh/0.78;                       //Virial radii (parsec / N-body)
     T_star = sqrt(pow(R_star,3)/(M_star*G_star)); //N-body time (Myr)
 
-  //If needed, converts galaxy to N-body units 
+  //If needed, converts galaxy to N-body units
     galaxy.M = galaxy.M/M_star;
     galaxy.R = galaxy.R/R_star;
     galaxy.scale = galaxy.scale/R_star;
@@ -282,7 +282,7 @@ void node::initialise(stellar_evo se,dynamics dyn){
   }
   
   //Sets up RG^2 for dynamical friction 
-  galaxy.R2 = pow(galaxy.R,2);
+  //galaxy.R2 = pow(galaxy.R,2);
   
   //Sets Coulomb logarithm
   if (s == 0) gamma = 0.11;
@@ -317,7 +317,7 @@ void node::initialise(stellar_evo se,dynamics dyn){
   nbody[9] = &trhpelapsed;
   nbody[10] = &kappa;
   nbody[11] = &MS;
-  nbody[12] = &galaxy.R2;
+  nbody[12] = &galaxy.R;
 
   cerr << endl;
 }

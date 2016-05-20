@@ -29,14 +29,10 @@ double node::r_jacobi(dynamics dyn){                             //Equation (18)
   }
   else if (s == 1 && galaxy.type!=3){
     rj = pow((N*mm)/(2.0*galaxy.M),(1.0/3.0))*galaxy.R;
-//    cerr << "TIDAL RADIUS isothermal: " << rj << endl;
-//    exit(1);
+    cout << "ARG : " << galaxy.type << endl;
   }
   else if (galaxy.type == 3) {                       //Jacobi radius for Dehnen's models
     rj = pow((N*mm*galaxy.R*galaxy.R)/(dyn.alpha()*dyn.vcirc()*dyn.vcirc()),(1.0/3.0));
-//    cerr << "TIDAL RADIUS Dehnen: " << rj << endl;
-//    cerr << "alpha: " << alpha() << endl;
-//    exit(1);
   }
   return rj;
 }
@@ -191,12 +187,13 @@ void node::convert(stellar_evo se, dynamics dyn){
     rv = rh/(4.0*kappa);
     
     //updates RG if using dynamical friction
-    galaxy.R = sqrt(galaxy.R2);
     galaxy.v = dyn.vcirc();
     
     //Radii calculations, as needed
     rj = r_jacobi(dyn); Rhj = rh/rj; Rch = rc/rh;
     
     //Dynamical Friction Functions
-    if (galaxy.f == 0) dyn.tdf(M_star, R_star, pcMyr, T_star);
+    if (galaxy.f == 0)
+      dyn.tdf(M_star, R_star, pcMyr, T_star);
+      
 }

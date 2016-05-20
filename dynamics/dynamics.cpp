@@ -6,20 +6,24 @@
 double dynamics::dNdt(){
   double dNdt = 0;
 //FilippoC
-  dNdt -= falpha()*xi()*mynode->N/mynode->t_rhp;		//Equation (6) AG2012
+  if (mynode->galaxy.f == 0)
+    dNdt -= falpha()*xi()*mynode->N/mynode->t_rhp;		//Equation (6) AG2012
+  
 //FContenta
   return dNdt;
 }
 
 double dynamics::dmmdt(){			//Equation (??) AGLB2014
   double dmmdt = 0;
-  dmmdt = gamma()*mynode->mm/mynode->t_rhp;	
+  if (mynode->galaxy.f == 0)
+    dmmdt = gamma()*mynode->mm/mynode->t_rhp;
   return dmmdt;
 }
 
 double dynamics::drdt(){			//Equation (7) AG2012
   double drdt = 0;
-  drdt += mu()*mynode->rh/mynode->t_rhp;
+  if (mynode->galaxy.f == 0)
+    drdt += mu()*mynode->rh/mynode->t_rhp;
   return drdt;
 }
 
@@ -43,6 +47,7 @@ double dynamics::dtrhpdt(){			//Counts t_rh'
 
 double dynamics::drcdt(){			//Equation (10) GALB2013
   double drcdt = 0;
+
   drcdt += delta()*mynode->rc/mynode->t_rhp;
   return drcdt;                          
 }
@@ -219,8 +224,8 @@ double dynamics::k(){				 //Breakdown, GALB2013
 
 void dynamics::tdf(double M_star, double R_star, double pcMyr, double T_star){                                  //Equation (4) AG2012
 
-t_df = 225*pow((mynode->galaxy.R*R_star)/1000,2)* \
-	(mynode->galaxy.v/pcMyr)/(T_star/R_star)/ \
+t_df = 225*pow((mynode->galaxy.R*R_star)/1000,2)*
+	(mynode->galaxy.v/pcMyr)/(T_star/R_star)/
 	((mynode->mm*mynode->N*M_star)/1e5);
 t_df = t_df/T_star;
 }
@@ -251,8 +256,11 @@ double dynamics::fv(double vs) {
   double mg = mynode->galaxy.M;
   double a = mynode->galaxy.scale;
   double r = mynode->galaxy.R;
-  
-  double pot = -(mg/a) * ( 1.0/ (2.0-gamma)) * pow(1.0 - (r/(r+a)),(2.0-gamma));
+
+  double pot = -(mg/a) * ( 1.0/ (2.0-gamma));
+  double fac = (r/(r+a));
+  pot *= 1.0 - (gamma == 1 ? fac : fac*fac); 
+
   
   //Calculate f(vs) at r.
   double E = -(0.5*vs*vs + pot) * (a/mg);
@@ -261,8 +269,8 @@ double dynamics::fv(double vs) {
     
   //Calculate f(E) (Dehnen 1993)
   double fE = 0.0;
-  
-  if (mynode->galaxy.gamma == 0.0) {
+
+  if (mynode->galaxy.gamma == 0) {
     fE = sqrt(2.0*E)*((3.0-4.0*E)/(1.0-2.0*E));
     fE -= 3.0*asinh(sqrt(2.0*E/(1.0 - 2.0*E)));
     fE *= 3.0*mg/(2.0*pow(M_PI,3) * pow(mg*a, 1.5));
@@ -287,7 +295,7 @@ double dynamics::fv(double vs) {
 }
 
 double dynamics::integrate(double a, double b) {
-  const double h=1.0e-5;
+  const double h=1.0e-1;
 
   double inf=a;
   double sup=a+h;
@@ -309,16 +317,15 @@ double dynamics::integrate(double a, double b) {
 }
 
 double dynamics::dV_dR(){                        //computed by Mark and James: (dV/dR + V/R)
-  double Ms = mynode->N*mynode->mm;
   if (mynode->galaxy.gamma == 0) 
-    return sqrt(Ms)*(mynode->galaxy.scale + mynode->galaxy.R*0.5)*pow(mynode->galaxy.scale + mynode->galaxy.R,-2.5);
+    return sqrt(mynode->galaxy.M)*(mynode->galaxy.scale + mynode->galaxy.R*0.5)*pow(mynode->galaxy.scale + mynode->galaxy.R,-2.5);
   else
-    return sqrt(Ms)*(3*mynode->galaxy.scale + mynode->galaxy.R)/(2.0*pow(mynode->galaxy.R,0.5)*(mynode->galaxy.scale + mynode->galaxy.R));
+    return sqrt(mynode->galaxy.M)*(3*mynode->galaxy.scale + mynode->galaxy.R)/(2.0*pow(mynode->galaxy.R,0.5)*(mynode->galaxy.scale + mynode->galaxy.R));
 }
 
 
 double dynamics::dr2dt() { // Dynamical Friction (James)
-  if (mynode->galaxy.f > 0 && mynode->galaxy.type == 3) {
+  if (mynode->galaxy.f == 1 && mynode->galaxy.type == 3) {
     int gamma = mynode->galaxy.gamma;
     double mg = mynode->galaxy.M;
     double a = mynode->galaxy.scale;
@@ -341,7 +348,6 @@ double dynamics::dr2dt() { // Dynamical Friction (James)
     //calculate f(v*<v)
     double fnorm = integrate(1e-12,vesc-1.e-12);
     double fvlow = integrate(1e-12,v-1.e-12);
-
     double rt = mynode->rj;
     
     double Mrt = (4.0*M_PI*rhor/3.0)*pow(rt, 3);
@@ -357,8 +363,13 @@ double dynamics::dr2dt() { // Dynamical Friction (James)
 
     double Cfric = 2.0*M_PI*Ms*rhor*log(Lambda*Lambda+1.0);
     double fr = -Cfric*fvlow/fnorm/(v*v);
+
+    //cout << "T_star = " << mynode->T_star << endl;
+    //cout << "R_star = " << mynode->R_star << endl;
+    //cout << "fr = " << fr / mynode->T_star / mynode->T_star * mynode->R_star << endl;
+    cerr << fvlow << " " << fnorm << endl;
     
-    return fr; // * dV_dR();
+    return fr / dV_dR();
   }
   
   return 0.0;
@@ -366,7 +377,7 @@ double dynamics::dr2dt() { // Dynamical Friction (James)
 
 double dynamics::vcirc(){                         //circular velocity Dehnen's models
     double vcirc = 0.0;
-    vcirc = pow(mynode->galaxy.M*pow(mynode->galaxy.R , 2-mynode->galaxy.gamma)/ \
+    vcirc = pow(mynode->galaxy.M*pow(mynode->galaxy.R , 2-mynode->galaxy.gamma) /
         pow(mynode->galaxy.R + mynode->galaxy.scale, 3-mynode->galaxy.gamma),0.5);
 
   return vcirc;
@@ -377,9 +388,13 @@ double dynamics::alpha(){                      //-dln(rho)/dlnr
   double alpha = 0;
   if (mynode->galaxy.type == 3) {
     alpha = mynode->galaxy.gamma - mynode->galaxy.R*(mynode->galaxy.gamma - 4.0)/(mynode->galaxy.R + mynode->galaxy.scale);
-    alpha = min(alpha,3.0);
+    //alpha = min(alpha,3.0);
   }
   else
     alpha = 2;
+
+
+  //  cout << "alpha(" << mynode->galaxy.R << ") = " << alpha << endl;
+
   return alpha;
 }
