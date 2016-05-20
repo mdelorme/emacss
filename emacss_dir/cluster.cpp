@@ -89,11 +89,11 @@ void node::evolve(stellar_evo se,dynamics dyn){
   double error, step_test;
   
   if (time == 0 && s == 0) tstep = step_min();         //Initial stepsize
-  if (time == 0 && s == 1) tstep = 0.1;
+  if (time == 0 && s == 1) tstep = 0.1;//tstep = 0.1;
   
   if (time+tstep > out_time)     //incase Completing
-	tstep = 1.001*(out_time-time);
-  
+    tstep = 1.001*(out_time-time);
+
   for (int i=0;i<13;i++) duplicate_nbody[i] = *nbody[i]; //Backup 
   convert(se, dyn);
 

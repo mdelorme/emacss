@@ -364,10 +364,19 @@ double dynamics::dr2dt() { // Dynamical Friction (James)
     double Cfric = 2.0*M_PI*Ms*rhor*log(Lambda*Lambda+1.0);
     double fr = -Cfric*fvlow/fnorm/(v*v);
 
-    //cout << "T_star = " << mynode->T_star << endl;
-    //cout << "R_star = " << mynode->R_star << endl;
-    //cout << "fr = " << fr / mynode->T_star / mynode->T_star * mynode->R_star << endl;
-    cerr << fvlow << " " << fnorm << endl;
+    #define DEBUG
+    #ifdef DEBUG
+    cout << "r = " << mynode->galaxy.R << endl;
+    cout << "mg = " << mynode->galaxy.M << endl;
+    cout << "Lambda = " << Lambda << endl;
+    cout << "T_star = " << mynode->T_star << endl;
+    cout << "R_star = " << mynode->R_star << endl;
+    cout << "fvlow = " << fvlow << " ; fnorm = " << fnorm << endl; 
+    cout << "fv = " << fvlow / fnorm << endl;
+    cout << "fr (unscaled) = " << fr << endl;
+    cout << "fr = " << fr / mynode->T_star / mynode->T_star * mynode->R_star << endl;
+    cout << "Scale = " << mynode->T_star * mynode->T_star / mynode->R_star << endl;
+    #endif
     
     return fr / dV_dR();
   }
@@ -390,11 +399,10 @@ double dynamics::alpha(){                      //-dln(rho)/dlnr
     alpha = mynode->galaxy.gamma - mynode->galaxy.R*(mynode->galaxy.gamma - 4.0)/(mynode->galaxy.R + mynode->galaxy.scale);
     //alpha = min(alpha,3.0);
   }
-  else
+  else {
     alpha = 2;
-
-
-  //  cout << "alpha(" << mynode->galaxy.R << ") = " << alpha << endl;
-
+    cerr << "Stellar evolution on: assuming isothermal galaxy halo" << endl;
+  }
+  
   return alpha;
 }
