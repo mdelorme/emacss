@@ -397,7 +397,7 @@ double dynamics::alpha(){                      //-dln(rho)/dlnr
   double alpha = 0;
   if (mynode->galaxy.type == 3) {
     alpha = mynode->galaxy.gamma - mynode->galaxy.R*(mynode->galaxy.gamma - 4.0)/(mynode->galaxy.R + mynode->galaxy.scale);
-    //alpha = min(alpha,3.0);
+    alpha = min(alpha,3.0);
   }
   else {
     alpha = 2;
